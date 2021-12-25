@@ -1,3 +1,5 @@
+using System;
+
 namespace BlazorServerTest.Data;
 
 public class WeatherForecast {
