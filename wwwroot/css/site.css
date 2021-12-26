@@ -1,7 +1,66 @@
 @import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
 
+.darkmode {
+    
+    --text-color-prim: #333;
+    --text-color-sec: #636364;
+    
+}
+
+.lightmode {
+    --text-color-prim: #333;
+    --text-color-sec: #636364;
+}
+
+.signup-container {
+    width: 600px;
+    background-color: whitesmoke;
+    border-radius: 8px; 
+    margin: 150px auto auto;
+    padding: 25px;
+    box-shadow: 0 8px 16px rgba(0,8,36,0.05);
+    border: 1px solid #e4e4e4;
+}
+
+.signup-container .icon-container {
+    text-align: center;
+    margin: 3rem auto auto;
+}
+
+.signup-container .icon-container i {
+    font-size: 55px;
+    color: #757575;
+}
+
+.signup-container h2 {
+    font-size: 32px;
+    font-weight: 600;
+}
+
+.signup-container p {
+    color: var(--text-color-sec);
+    font-size: 16px;
+}
+
+.signup-tabloid {
+    box-shadow: 0 8px 16px rgba(0,8,36,0.05);
+    border: 1px solid #e4e4e4;
+    border-radius: 13px;
+    flex-grow: 1;
+    text-align: center;
+    margin-bottom: 15px;
+    background-color: #fefefe;
+
+    transition: all .2s ease-in-out;
+}
+
+.st-selected {
+    background-color: #e1e1e1;
+    transform: scale(1.02);
+}
+
 html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: 'Montserrat webfont', sans-serif;
 }
 
 h1:focus {

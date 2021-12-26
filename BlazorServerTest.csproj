@@ -1,10 +1,27 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-    </PropertyGroup>
+      <UserSecretsId>f2b1ec9c-6697-4b0a-bf8a-8f8c8493e512</UserSecretsId>
+  </PropertyGroup>
+
+    <ItemGroup>
+      <None Update="Pages\CreateAccount.razor.css">
+        <DependentUpon>CreateAccount.razor</DependentUpon>
+      </None>
+      <None Update="Pages\CreateAccount.razor.js">
+        <DependentUpon>CreateAccount.razor</DependentUpon>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="AspNetCore.Identity.MongoDbCore" Version="2.1.1" />
+      <PackageReference Include="AutoMapper" Version="10.1.1" />
+      <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="8.1.1" />
+      <PackageReference Include="MongoDB.Driver" Version="2.11.2" />
+    </ItemGroup>
 
 </Project>
