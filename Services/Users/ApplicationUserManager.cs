@@ -104,4 +104,12 @@ public class ApplicationUserManager : IAppUserManager {
     public async Task<string> GenerateUserTokenAsync(ApplicationUser user, string defaultProvider, string login) {
         return await _userManager.GenerateUserTokenAsync(user, defaultProvider, login);
     }
+
+    public async Task<string> GenerateEmailConfirmationTokenAsync(ApplicationUser user) {
+        return await _userManager.GenerateEmailConfirmationTokenAsync(user);
+    }
+
+    public async Task<IdentityResult> ConfirmEmailAsync(ApplicationUser user, string token) {
+        return await _userManager.ConfirmEmailAsync(user, token);
+    }
 }

@@ -25,4 +25,6 @@ public interface IAppUserManager {
     Task<bool> VerifyUserTokenForLoginAsync(ApplicationUser identityUser, string defaultProvider, string part);
     Task<IdentityResult> ResetAccessFailedCountAsync(ApplicationUser identityUser);
     Task<string> GenerateUserTokenAsync(ApplicationUser user, string defaultProvider, string login);
+    Task<string> GenerateEmailConfirmationTokenAsync(ApplicationUser user);
+    Task<IdentityResult> ConfirmEmailAsync(ApplicationUser user, string token);
 }

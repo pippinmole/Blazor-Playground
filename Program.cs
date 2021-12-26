@@ -1,10 +1,12 @@
 using AspNetCore.Identity.Mongo;
 using BlazorServerTest.Data;
 using BlazorServerTest.Data.Database;
+using BlazorServerTest.Data.Mail;
 using BlazorServerTest.Data.Users;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using BlazorServerTest.Services.Mail;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +15,8 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddHttpClient();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.Configure<MailSenderOptions>(builder.Configuration.GetSection(MailSenderOptions.Name));
+
 builder.Services.AddIdentityMongoDbProvider<ApplicationUser, ApplicationRole, Guid>(
     identity => {
         identity.Password.RequireDigit = false;
@@ -45,6 +49,7 @@ builder.Services.AddScoped<UserContext>();
 builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<ApplicationUser>>();
 builder.Services.AddScoped<IAppUserManager, ApplicationUserManager>();
 builder.Services.AddSingleton<IDatabaseContext, DatabaseContext>();
+builder.Services.AddSingleton<IMailSender, MailSender>();
 
 var app = builder.Build();
 

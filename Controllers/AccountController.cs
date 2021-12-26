@@ -45,4 +45,24 @@ public class AccountController : ControllerBase {
 
         return Redirect(redirect);
     }
+
+    [AllowAnonymous]
+    [HttpGet("/auth/verify")]
+    public async Task<IActionResult> Verify(string email, string token) {
+        if ( string.IsNullOrEmpty(token) )
+            return BadRequest();
+
+        var user = await _userManager.GetUserByEmailAsync(email);
+        if ( user == null )
+            return BadRequest();
+        
+        var result = await _userManager.ConfirmEmailAsync(user, token);
+        if ( result.Succeeded ) {
+            _logger.LogInformation("Successfully verified email: {Address}", email);
+            
+            return Redirect("/");
+        }
+        
+        return StatusCode(500);
+    }
 }

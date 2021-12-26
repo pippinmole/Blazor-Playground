@@ -2,6 +2,7 @@
 @using System.ComponentModel.DataAnnotations
 @using System.Web
 @using BlazorServerTest.Data.Users
+@using BlazorServerTest.Services.Mail
 @using Microsoft.AspNetCore.DataProtection
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.IdentityModel.Tokens
@@ -11,10 +12,12 @@
 @inject NavigationManager _navigationManager
 @inject IAppUserManager _userManager;
 @inject IDataProtectionProvider _dataProtection;
+@inject IMailSender _mailSender;
 
 @code {
     private AccountCreationForm AccountForm { get; set; } = new();
     private EditContext? _editContext;
+    private ValidationMessageStore? _messageStore;
 
     public class AccountCreationForm {
         public EAccountType AccountType { get; set; } = EAccountType.None;
@@ -69,6 +72,7 @@
     
     protected override Task OnInitializedAsync() {
         _editContext = new EditContext(AccountForm);
+        _messageStore = new ValidationMessageStore(_editContext);
         
         return Task.CompletedTask;
     }
@@ -80,10 +84,7 @@
             FirstName = AccountForm.FirstName,
             LastName = AccountForm.LastName,
             Email = AccountForm.Email,
-            UserName = $"{AccountForm.FirstName}_{AccountForm.LastName}",
-            
-            // TODO: Implement email verification service
-            EmailConfirmed = true
+            UserName = $"{AccountForm.FirstName}_{AccountForm.LastName}"
         };
 
         var result = await _userManager.CreateAsync(user, AccountForm.Password);
@@ -95,10 +96,19 @@
 
             var protectedData = Base64UrlEncoder.Encode(protector.Protect(data));
             var redirect = HttpUtility.UrlEncode("/signup/verify");
+
+            var verifyToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var verifyUrl = $"{_navigationManager.BaseUri}auth/verify?token={HttpUtility.UrlEncode(verifyToken)}&email={HttpUtility.UrlEncode(user.Email)}";
+            
+            await _mailSender.SendEmailAsync(new[] {
+                user.Email
+            }, "Account Verification", verifyUrl);
+            
             _navigationManager.NavigateTo($"/auth/login?token={protectedData}&redirect={redirect}", true);
         } else {
             foreach ( var error in result.Errors ) {
-                _logger.LogWarning("Failed to create user: {ErrorDescription}", error.Description);
+                _messageStore?.Add(_editContext.Field(error.Code), error.Description);
+                _editContext.NotifyValidationStateChanged();
             }
         }
     }

@@ -7,7 +7,9 @@
 @attribute [Authorize]
 
 @code {
-    [CascadingParameter] protected Task<AuthenticationState>? AuthState { get; set; }
+    [CascadingParameter]
+    protected Task<AuthenticationState>? AuthState { get; set; }
+
     private SafeApplicationUser? SafeUser { get; set; }
 
     protected override async Task OnInitializedAsync() {
