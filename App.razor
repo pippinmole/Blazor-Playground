@@ -1,10 +1,28 @@
-﻿<Router AppAssembly="@typeof(Program).Assembly" PreferExactMatches="@true">
-    <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
-    </Found>
-    <NotFound>
-        <LayoutView Layout="@typeof(MainLayout)">
-            <p>Sorry, there's nothing at this address.</p>
-        </LayoutView>
-    </NotFound>
-</Router>
+﻿@using BlazorServerTest.Data.Users
+@code {
+    
+    [CascadingParameter] 
+    public Task<AuthenticationState> AuthenticationStateTask { get; set; }
+    
+    [CascadingParameter]
+    public ApplicationUser User { get; set; }
+    
+    [CascadingParameter]
+    public SafeApplicationUser SafeUser { get; set; }
+    
+    [CascadingParameter]
+    public string Test { get; set; }
+}
+
+<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(Program).Assembly" PreferExactMatches="@true">
+        <Found Context="routeData">
+            <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        </Found>
+        <NotFound>
+            <LayoutView Layout="@typeof(MainLayout)">
+                <p>Sorry, there's nothing at this address.</p>
+            </LayoutView>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>

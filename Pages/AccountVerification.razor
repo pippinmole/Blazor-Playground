@@ -1,10 +1,38 @@
 @layout IntakeLayout
 @page "/signup/verify"
+@using BlazorServerTest.Data.Users
+@inject IAppUserManager _userManager
+@inject NavigationManager _navigationManager
+@inject ILogger<AccountVerification> _logger
+@attribute [Authorize]
 
-<h2 style="color: var(--text-color-prim)">
-    Check your email!
-</h2>
+@code {
+    [CascadingParameter] protected Task<AuthenticationState>? AuthState { get; set; }
+    private SafeApplicationUser? SafeUser { get; set; }
 
-<p>
-    We've sent you an email with a verification link. Click it and this page will redirect you.
-</p>
+    protected override async Task OnInitializedAsync() {
+        var state = await AuthState!;
+        SafeUser = await _userManager.GetSafeUserAsync(state.User);
+
+        if ( SafeUser == null )
+            _navigationManager.NavigateTo("/");
+    }
+}
+
+<AuthorizeView>
+    <div class="text-center">
+        <img src="images/email-success.svg" style="max-width: 150px; width:70%" alt="Email Success Image"/>
+
+        <h2 style="color: var(--text-color-prim)">
+            You're in!
+        </h2>
+
+        <p>
+            @(SafeUser?.FirstNameFormat()), click the link we've emailed you to verify your account.
+        </p>
+        
+        <div class="sc-footer">
+            Didn't receive the email? <a href="#">Resend email</a>
+        </div>
+    </div>
+</AuthorizeView>

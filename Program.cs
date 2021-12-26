@@ -1,44 +1,50 @@
-using AspNetCore.Identity.MongoDbCore.Extensions;
-using AspNetCore.Identity.MongoDbCore.Infrastructure;
+using AspNetCore.Identity.Mongo;
 using BlazorServerTest.Data;
 using BlazorServerTest.Data.Database;
 using BlazorServerTest.Data.Users;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
-
-var mongoDbIdentity = new MongoDbIdentityConfiguration {
-    MongoDbSettings = new MongoDbSettings {
-        ConnectionString = builder.Configuration.GetConnectionString("DatabaseConnectionString"),
-        DatabaseName = "UserDatabase"
-    },
-    IdentityOptionsAction = options => {
-        options.Password.RequireDigit = false;
-        options.Password.RequiredLength = 8;
-        options.Password.RequireNonAlphanumeric = false;
-        options.Password.RequireUppercase = false;
-        options.Password.RequireLowercase = false;
-
-        // Lockout settings
-        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
-        options.Lockout.MaxFailedAccessAttempts = 10;
-
-        // ApplicationUser settings
-        options.User.RequireUniqueEmail = true;
-        options.User.AllowedUserNameCharacters =
-            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@.-_";
-    }
-};
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddScoped<IAppUserManager, ApplicationUserManager>();
-builder.Services.AddSingleton<WeatherForecastService>();
-builder.Services.AddSingleton<IDatabaseContext, DatabaseContext>();
 builder.Services.AddHttpClient();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-builder.Services.ConfigureMongoDbIdentity<ApplicationUser, ApplicationRole, Guid>(mongoDbIdentity);
+builder.Services.AddIdentityMongoDbProvider<ApplicationUser, ApplicationRole, Guid>(
+    identity => {
+        identity.Password.RequireDigit = false;
+        identity.Password.RequiredLength = 8;
+        identity.Password.RequireNonAlphanumeric = false;
+        identity.Password.RequireUppercase = false;
+        identity.Password.RequireLowercase = false;
 
+        // Lockout settings
+        identity.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
+        identity.Lockout.MaxFailedAccessAttempts = 10;
+
+        // ApplicationUser settings
+        identity.User.RequireUniqueEmail = true;
+        identity.User.AllowedUserNameCharacters =
+            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@.-_";
+    },
+    mongo => {
+        mongo.ConnectionString = builder.Configuration.GetConnectionString("DatabaseConnectionString");
+        mongo.UsersCollection = "user_info";
+    })
+    .AddDefaultTokenProviders();
+
+builder.Services.AddAuthentication();
+builder.Services.AddSignalR();
+builder.Services.AddMvc();
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddScoped<UserContext>();
+builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<ApplicationUser>>();
+builder.Services.AddScoped<IAppUserManager, ApplicationUserManager>();
+builder.Services.AddSingleton<IDatabaseContext, DatabaseContext>();
 
 var app = builder.Build();
 
@@ -55,7 +61,12 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
+
+app.MapControllers();
 
 app.Run();

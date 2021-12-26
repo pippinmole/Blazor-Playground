@@ -1,6 +1,8 @@
 ﻿@page "/"
+@using BlazorServerTest.Data.Users
 @using Microsoft.AspNetCore.Components.Web
 @namespace BlazorServerTest.Pages
+@inject IAppUserManager _userManager;
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
     Layout = null;
@@ -21,7 +23,7 @@
 </head>
 <body class="lightmode">
 
-<component type="typeof(App)" render-mode="ServerPrerendered" />
+@(await Html.RenderComponentAsync<App>(RenderMode.ServerPrerendered))
 
 <div id="blazor-error-ui">
     <environment include="Staging,Production">
@@ -37,8 +39,7 @@
 <script src="_framework/blazor.server.js"></script>
 <script src="https://kit.fontawesome.com/61ef2effb6.js" crossorigin="anonymous"></script>
 <script src="js/jquery-3.6.0.min.js"></script>
-
-<!--await RenderSectionAsync("Scripts", false)-->
+<script src="js/site.js"></script>
 
 </body>
 </html>

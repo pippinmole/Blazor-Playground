@@ -32,9 +32,19 @@
     color: #757575;
 }
 
+.signup-container p {
+    font-weight: 300;
+}
+
+.signup-container .sc-footer {
+    border-top: 1px solid #d7d7d7;
+    min-height: 25px;
+    padding-top: 25px;
+}
+
 .signup-container h2 {
     font-size: 32px;
-    font-weight: 600;
+    font-weight: 400;
 }
 
 .signup-container p {
