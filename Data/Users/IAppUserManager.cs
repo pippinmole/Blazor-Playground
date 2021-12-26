@@ -20,7 +20,7 @@ public interface IAppUserManager {
     Task<IdentityResult> ResetPasswordAsync(ApplicationUser user, string token, string password);
     Task<IdentityResult> AddToRoleAsync(ApplicationUser user, string role);
     Task<bool> IsUserInRole(ApplicationUser user, string role);
-    Task<IdentityResult> CreateAsync(ApplicationUser newAccount, string password);
+    Task<IdentityResult> CreateAsync(ApplicationUser newAccount, string? password);
     Task SignInAsync(ApplicationUser newAccount, bool isPersistent);
     Task<bool> VerifyUserTokenForLoginAsync(ApplicationUser identityUser, string defaultProvider, string part);
     Task<IdentityResult> ResetAccessFailedCountAsync(ApplicationUser identityUser);

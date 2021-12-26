@@ -14,37 +14,31 @@
 
 @code {
     private AccountCreationForm AccountForm { get; set; } = new();
+    private EditContext? _editContext;
 
     public class AccountCreationForm {
         public EAccountType AccountType { get; set; } = EAccountType.None;
 
         [Required(ErrorMessage = "Please provide a valid first name")]
         [StringLength(64, MinimumLength = 1)]
-        public string FirstName { get; set; }
+        public string? FirstName { get; set; }
 
         [Required(ErrorMessage = "Please provide a valid last name")]
         [StringLength(64, MinimumLength = 1)]
-        public string LastName { get; set; }
+        public string? LastName { get; set; }
 
         [Required(ErrorMessage = "Please provide a valid email"), EmailAddress]
         [StringLength(256, MinimumLength = 3)]
-        public string Email { get; set; }
+        public string? Email { get; set; }
 
         [Required(ErrorMessage = "Please provide a valid password"), DataType(DataType.Password)]
         [StringLength(128, MinimumLength = 8, ErrorMessage = "Please provide a password between 8 and 128 characters")]
-        public string Password { get; set; }
+        public string? Password { get; set; }
 
         [StringLength(64, MinimumLength = 3)]
-        public string Organization { get; set; }
+        public string? Organization { get; set; }
 
         public ECreationStage CreationStage { get; set; } = ECreationStage.OrganisationType;
-
-        public void Next() {
-            if ( CreationStage == ECreationStage.OrganisationType && AccountType == EAccountType.None )
-                return;
-
-            CreationStage++;
-        }
     }
 
     public enum EAccountType {
@@ -58,18 +52,38 @@
         UserCredentials
     }
 
-    private static string? ConditionalTag(string tag, bool condition) {
-        return condition ? tag : null;
+    private static string? ConditionalTag(string tag, bool condition) => condition ? tag : null;
+
+    private void Next() {
+        if ( AccountForm.CreationStage == ECreationStage.OrganisationType 
+             && AccountForm.AccountType == EAccountType.None )
+            return;
+
+        AccountForm.CreationStage++;
+    }
+
+    private void Previous() {
+        AccountForm.CreationStage--;
+        _editContext = new EditContext(AccountForm);
+    }
+    
+    protected override Task OnInitializedAsync() {
+        _editContext = new EditContext(AccountForm);
+        
+        return Task.CompletedTask;
     }
 
     private async Task OnAccountCreationSubmit(EditContext ctx) {
-        _logger.LogInformation($"Received create account request from {AccountForm.FirstName} {AccountForm.LastName}.");
-
+        _logger.LogInformation("Received create account request from {FirstName} {LastName}", AccountForm.FirstName, AccountForm.LastName);
+        
         var user = new ApplicationUser {
             FirstName = AccountForm.FirstName,
             LastName = AccountForm.LastName,
             Email = AccountForm.Email,
-            UserName = $"{AccountForm.FirstName}_{AccountForm.LastName}"
+            UserName = $"{AccountForm.FirstName}_{AccountForm.LastName}",
+            
+            // TODO: Implement email verification service
+            EmailConfirmed = true
         };
 
         var result = await _userManager.CreateAsync(user, AccountForm.Password);
@@ -84,35 +98,41 @@
             _navigationManager.NavigateTo($"/auth/login?token={protectedData}&redirect={redirect}", true);
         } else {
             foreach ( var error in result.Errors ) {
-                _logger.LogWarning($"Failed to create user: {error.Description}");
+                _logger.LogWarning("Failed to create user: {ErrorDescription}", error.Description);
             }
         }
     }
 }
 
-<EditForm Model="AccountForm" OnValidSubmit="@OnAccountCreationSubmit">
+<EditForm EditContext="_editContext" OnValidSubmit="@OnAccountCreationSubmit">
+    @if ( AccountForm.CreationStage != 0 ) {
+        <div @onclick="Previous" style="cursor: pointer;" class="position-absolute">
+            <img width="15px" height="15px" src="images/back-arrow.svg" alt="Close tab cross"/>
+        </div>
+    }
+    
     <h2 style="color: var(--text-color-prim)">
-        Create your account!
+        Create your account
     </h2>
-        
+
     <p>
         Start your job seeker adventure today - get access to thousands of employers in your field.
     </p>
-        
+
     <DataAnnotationsValidator/>
     <ValidationSummary/>
 
     <div class="@ConditionalTag("d-none", AccountForm.CreationStage != ECreationStage.OrganisationType)">
         <div class="w-100">
             <p>Firstly, are you:</p>
-            
+
             <div class="d-flex flex-row flex-wrap align-items-stretch justify-content-between">
                 <button type="button" class="signup-tabloid @ConditionalTag("st-selected", AccountForm.AccountType == EAccountType.Individual)"
                         @onclick="() => AccountForm.AccountType = EAccountType.Individual">
                     <div class="icon-container">
                         <i class="fas fa-users"></i>
                     </div>
-            
+
                     <h3 class="mt-3">Individual</h3>
                     <p>Looking for a job? Click me!</p>
                 </button>
@@ -121,14 +141,14 @@
                     <div class="icon-container">
                         <i class="fas fa-users"></i>
                     </div>
-            
+
                     <h3 class="mt-3">Company</h3>
                     <p>Looking for people to hire on your adventure? Click me!</p>
                 </button>
             </div>
-            
+
             <button type="button" class="btn btn-primary w-100 p-3 mt-3"
-                    @onclick="AccountForm.Next"
+                    @onclick="Next"
                     disabled="@(AccountForm.AccountType == EAccountType.None)">
                 @if ( AccountForm.AccountType == EAccountType.None ) {
                     @:Please select an account type...
@@ -138,26 +158,26 @@
             </button>
         </div>
     </div>
-        
+
     <div class="@ConditionalTag("d-none", AccountForm.CreationStage != ECreationStage.UserCredentials)">
         <div class="w-100">
             <div class="row mb-3">
                 <div class="col">
-                    <label for="exampleInputFirstname1">First name</label>
+                    <label for="exampleInputFirstname1">First name*</label>
                     <InputText @bind-Value="@AccountForm.FirstName" id="exampleInputFirstname1" class="form-control" placeholder="John"></InputText>
                 </div>
                 <div class="col">
-                    <label for="exampleInputLastname1">Last name</label>
+                    <label for="exampleInputLastname1">Last name*</label>
                     <InputText @bind-Value="@AccountForm.LastName" id="exampleInputLastname1" class="form-control" placeholder="Appleseed"></InputText>
                 </div>
             </div>
-                    
+
             <div class="form-group mb-3">
-                <label for="exampleInputEmail1">Email address</label>
+                <label for="exampleInputEmail1">Email address*</label>
                 <InputText type="email" @bind-Value="@AccountForm.Email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="myname@email.com"></InputText>
                 <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
             </div>
-                
+
             @if ( AccountForm.AccountType == EAccountType.Company ) {
                 <div class="form-group mb-3">
                     <label for="exampleInputOrgname1">Organisation Name</label>
@@ -165,12 +185,12 @@
                     <!--<small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>-->
                 </div>
             }
-                
+
             <div class="form-group mb-3">
-                <label for="exampleInputPassword1">Password</label>
+                <label for="exampleInputPassword1">Password*</label>
                 <InputText @bind-Value="@AccountForm.Password" type="password" class="form-control" id="exampleInputPassword1" placeholder=""></InputText>
             </div>
-                    
+
             <button type="submit" class="btn btn-primary w-100 p-3 mt-3">
                 @if ( AccountForm.AccountType == EAccountType.None ) {
                     @:Please select an account type...

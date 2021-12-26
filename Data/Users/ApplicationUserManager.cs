@@ -87,7 +87,7 @@ public class ApplicationUserManager : IAppUserManager {
         return await _userManager.IsInRoleAsync(user, role);
     }
 
-    public async Task<IdentityResult> CreateAsync(ApplicationUser newAccount, string password) {
+    public async Task<IdentityResult> CreateAsync(ApplicationUser newAccount, string? password) {
         //newAccount.GenerateApiKey(_configuration);
         return await _userManager.CreateAsync(newAccount, password);
     }

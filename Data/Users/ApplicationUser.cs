@@ -4,11 +4,11 @@ namespace BlazorServerTest.Data.Users;
 
 public sealed class ApplicationUser : MongoUser<Guid> {
     
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
     
     public ApplicationUser() : base() { }
-    public ApplicationUser(string firstName, string lastName, string email) : base(firstName + lastName) {
+    public ApplicationUser(string? firstName, string? lastName, string email) : base(firstName + lastName) {
         FirstName = firstName;
         LastName = lastName;
         Email = email;

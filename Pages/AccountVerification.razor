@@ -14,14 +14,20 @@
         var state = await AuthState!;
         SafeUser = await _userManager.GetSafeUserAsync(state.User);
 
-        if ( SafeUser == null )
+        if ( SafeUser == null || SafeUser.EmailConfirmed )
             _navigationManager.NavigateTo("/");
     }
 }
 
+<div class="position-absolute">
+    <a href="/">
+        <img width="15px" height="15px" src="images/close-cross.svg" alt="Close tab cross"/>
+    </a>
+</div>
+
 <AuthorizeView>
     <div class="text-center">
-        <img src="images/email-success.svg" style="max-width: 150px; width:70%" alt="Email Success Image"/>
+        <img src="images/email-success.svg" class="mb-3" style="max-width: 150px; width:70%" alt="Email Success Image"/>
 
         <h2 style="color: var(--text-color-prim)">
             You're in!

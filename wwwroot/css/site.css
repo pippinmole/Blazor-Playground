@@ -16,7 +16,7 @@
     width: 600px;
     background-color: whitesmoke;
     border-radius: 8px; 
-    margin: 150px auto auto;
+    margin: 90px auto auto;
     padding: 25px;
     box-shadow: 0 8px 16px rgba(0,8,36,0.05);
     border: 1px solid #e4e4e4;
@@ -45,6 +45,7 @@
 .signup-container h2 {
     font-size: 32px;
     font-weight: 400;
+    text-align: center;
 }
 
 .signup-container p {
@@ -67,6 +68,9 @@
 .st-selected {
     background-color: #e1e1e1;
     transform: scale(1.02);
+    border-color: #0b5ed7;
+    border-width: 4px;
+    box-sizing: border-box;
 }
 
 html, body {
