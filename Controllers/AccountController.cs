@@ -25,10 +25,8 @@ public class AccountController : ControllerBase {
     [HttpGet("/auth/login")]
     public async Task<IActionResult> Login(string token, string redirect) {
         
-        _logger.LogInformation($"Hit AccountController endpoint with redirect {redirect}");
-        
-        if ( string.IsNullOrEmpty(token) )
-            return Redirect("/");
+        if ( string.IsNullOrEmpty(token) ) return Redirect("/");
+        if ( string.IsNullOrEmpty(redirect) ) redirect = "/";
         
         var dataProtector = _dataProtectionProvider.CreateProtector("Login");
         var data = dataProtector.Unprotect(Base64UrlEncoder.Decode(token));
@@ -37,32 +35,41 @@ public class AccountController : ControllerBase {
         var identityUser = await _userManager.GetUserByIdAsync(parts[0]);
         var isTokenValid = await _userManager.VerifyUserTokenForLoginAsync(identityUser, TokenOptions.DefaultProvider, parts[1]);
 
-        if ( !isTokenValid )
+        if ( !isTokenValid ) {
+            _logger.LogInformation("Failed to authorize user");
             return Unauthorized();
-        
+        }
+
         await _userManager.ResetAccessFailedCountAsync(identityUser);
         await _userManager.SignInAsync(identityUser, true);
 
+        _logger.LogInformation("Successfully authorized user. Redirecting...");
+        
         return Redirect(redirect);
     }
 
+    [HttpGet("/auth/logout")]
+    public async Task<IActionResult> Logout(string redirect) {
+        if ( string.IsNullOrEmpty(redirect) ) redirect = "/";
+
+        await _userManager.SignOutAsync();
+        
+        return Redirect(redirect);
+    }
+    
     [AllowAnonymous]
     [HttpGet("/auth/verify")]
-    public async Task<IActionResult> Verify(string email, string token) {
-        if ( string.IsNullOrEmpty(token) )
-            return BadRequest();
+    public async Task<IActionResult> Verify(string? email, string token) {
+        if ( string.IsNullOrEmpty(token) ) return BadRequest();
 
         var user = await _userManager.GetUserByEmailAsync(email);
-        if ( user == null )
-            return BadRequest();
+        if ( user == null ) return BadRequest();
         
         var result = await _userManager.ConfirmEmailAsync(user, token);
-        if ( result.Succeeded ) {
-            _logger.LogInformation("Successfully verified email: {Address}", email);
-            
-            return Redirect("/");
-        }
+        if ( !result.Succeeded ) return StatusCode(500);
         
-        return StatusCode(500);
+        _logger.LogInformation("Successfully verified email: {Address}", email);
+            
+        return Redirect("/");
     }
 }

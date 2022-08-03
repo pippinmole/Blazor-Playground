@@ -1,0 +1,103 @@
+﻿@page "/login"
+@layout IntakeLayout
+@using System.ComponentModel.DataAnnotations
+@using System.Web
+@using BlazorServerTest.Data.Users
+@using Microsoft.AspNetCore.DataProtection
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.IdentityModel.Tokens
+@inject ILogger<LoginAccount> _logger
+@inject IAppUserManager _userManager;
+@inject SignInManager<ApplicationUser> _signInManager
+@inject IDataProtectionProvider _dataProtection;
+@inject NavigationManager _navigationManager;
+
+@code {
+
+    private AccountLoginForm AccountForm { get; set; } = new();
+    private bool IsValidForm { get; set; }
+    
+    private EditContext? _editContext;
+    private ValidationMessageStore? _messageStore;
+
+    protected override Task OnInitializedAsync() {
+        _editContext = new EditContext(AccountForm);
+        _messageStore = new ValidationMessageStore(_editContext);
+
+        return Task.CompletedTask;
+    }
+
+    private async Task OnAccountLogin() {
+        _logger.LogInformation("Login attempt by {User}", "User");
+
+        var user = await _userManager.GetUserByEmailAsync(AccountForm.Email);
+        if ( user == null ) {
+            _logger.LogWarning("Login attempt by {User} failed, no such email", AccountForm.Email);
+
+            _messageStore?.Add(_editContext?.Field(error.Code), "Login failed");
+            _editContext?.NotifyValidationStateChanged();
+
+            return;
+        }
+
+        var result = await _signInManager.CheckPasswordSignInAsync(user, AccountForm.Password, true);
+        if ( !result.Succeeded ) {
+            _logger.LogWarning("Login attempt by {User} failed, password incorrect", AccountForm.Email);
+            return;
+        }
+        
+        var token = await _userManager.GenerateUserTokenAsync(user, TokenOptions.DefaultProvider, "Login");
+        var data = $"{user.Id}|{token}";
+        var protector = _dataProtection.CreateProtector("Login");
+        var protectedData = Base64UrlEncoder.Encode(protector.Protect(data));
+
+        _navigationManager.NavigateTo($"/auth/login?token={protectedData}", true);
+    }
+
+    public class AccountLoginForm {
+        [Required(ErrorMessage = "Please provide a valid email"), EmailAddress]
+        [StringLength(256, MinimumLength = 3)]
+        public string? Email { get; set; }
+
+        [Required(ErrorMessage = "Please provide a valid password"), DataType(DataType.Password)]
+        [StringLength(128, MinimumLength = 8, ErrorMessage = "Please provide a password between 8 and 128 characters")]
+        public string? Password { get; set; }
+    }
+
+}
+
+<EditForm EditContext="_editContext" OnValidSubmit="@OnAccountLogin">
+    <h2 style="color: var(--text-color-prim)">
+        Login
+    </h2>
+
+    <p>
+        Start your job seeker adventure today - get access to thousands of employers in your field.
+    </p>
+
+    <DataAnnotationsValidator/>
+    <ValidationSummary/>
+    
+    <div class="w-100">
+        <div class="form-group mb-3">
+            <label for="exampleInputEmail1">Email address</label>
+            <InputText type="email" @bind-Value="@AccountForm.Email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="myname@email.com"></InputText>
+            <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="exampleInputPassword1">Password</label>
+            <InputText @bind-Value="@AccountForm.Password" type="password" class="form-control" id="exampleInputPassword1" placeholder=""></InputText>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 p-3 mt-3" disabled="@IsValidForm">
+            Login
+                
+            @* @if ( AccountForm.AccountType == CreateAccount.EAccountType.None ) { *@
+            @*     @:Please select an account type... *@
+            @* } else { *@
+            @*     @:Confirm *@
+            @* } *@
+        </button>
+    </div>
+</EditForm>

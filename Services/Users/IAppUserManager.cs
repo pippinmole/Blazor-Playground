@@ -13,7 +13,7 @@ public interface IAppUserManager {
     Task<ApplicationUser> GetUserByIdAsync(string id);
     Task<ApplicationUser> GetUserByIdAsync(Guid id);
     Task<IdentityResult> UpdateUserAsync(ApplicationUser user);
-    Task<ApplicationUser> GetUserByEmailAsync(string email);
+    Task<ApplicationUser> GetUserByEmailAsync(string? email);
     Task<IdentityResult> RemoveUserAsync(ApplicationUser user);
     Task<string> GeneratePasswordResetTokenAsync(ApplicationUser user);
     Task SignOutAsync();
@@ -22,7 +22,7 @@ public interface IAppUserManager {
     Task<bool> IsUserInRole(ApplicationUser user, string role);
     Task<IdentityResult> CreateAsync(ApplicationUser newAccount, string? password);
     Task SignInAsync(ApplicationUser newAccount, bool isPersistent);
-    Task<bool> VerifyUserTokenForLoginAsync(ApplicationUser identityUser, string defaultProvider, string part);
+    Task<bool> VerifyUserTokenForLoginAsync(ApplicationUser user, string tokenProvider, string token);
     Task<IdentityResult> ResetAccessFailedCountAsync(ApplicationUser identityUser);
     Task<string> GenerateUserTokenAsync(ApplicationUser user, string defaultProvider, string login);
     Task<string> GenerateEmailConfirmationTokenAsync(ApplicationUser user);

@@ -6,7 +6,6 @@ using BlazorServerTest.Data.Users;
 using BlazorServerTest.Services.Mail;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,14 +20,7 @@ builder.Services.AddIdentityMongoDbProvider<ApplicationUser, ApplicationRole, Gu
     identity => {
         identity.Password.RequireDigit = false;
         identity.Password.RequiredLength = 8;
-        identity.Password.RequireNonAlphanumeric = false;
-        identity.Password.RequireUppercase = false;
-        identity.Password.RequireLowercase = false;
-
-        // Lockout settings
-        identity.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
-        identity.Lockout.MaxFailedAccessAttempts = 10;
-
+        
         // ApplicationUser settings
         identity.User.RequireUniqueEmail = true;
         identity.User.AllowedUserNameCharacters =

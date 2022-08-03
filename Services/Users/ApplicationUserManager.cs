@@ -67,7 +67,7 @@ public class ApplicationUserManager : IAppUserManager {
         return await _userManager.GeneratePasswordResetTokenAsync(user);
     }
 
-    public async Task<ApplicationUser> GetUserByEmailAsync(string email) {
+    public async Task<ApplicationUser> GetUserByEmailAsync(string? email) {
         return await _userManager.FindByEmailAsync(email);
     }
 
@@ -95,8 +95,8 @@ public class ApplicationUserManager : IAppUserManager {
     public async Task SignInAsync(ApplicationUser newAccount, bool isPersistent) {
         await _signInManager.SignInAsync(newAccount, isPersistent);
     }
-    public async Task<bool> VerifyUserTokenForLoginAsync(ApplicationUser identityUser, string defaultProvider, string part) {
-        return await _userManager.VerifyUserTokenAsync(identityUser, defaultProvider, "Login", part);
+    public async Task<bool> VerifyUserTokenForLoginAsync(ApplicationUser user, string tokenProvider, string token) {
+        return await _userManager.VerifyUserTokenAsync(user, tokenProvider, "Login", token);
     }
     public async Task<IdentityResult> ResetAccessFailedCountAsync(ApplicationUser identityUser) {
         return await _userManager.ResetAccessFailedCountAsync(identityUser);
